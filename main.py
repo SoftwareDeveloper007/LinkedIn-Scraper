@@ -10,7 +10,8 @@ import threading, time, csv, xlrd, os, sys, platform
 def takeFirst(elem):
     return elem[0]
 
-email = 'qingxin_age@hotmail.com'
+#email = 'qingxin_age@hotmail.com'
+email = 'david.jin11111@mail.com'
 password = 'passion1989'
 
 class mainScraper():
