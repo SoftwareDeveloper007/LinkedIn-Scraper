@@ -120,8 +120,17 @@ class mainScraper():
                 # Rows in the first page
                 rows = WebDriverWait(self.driver, 200).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.search-results")))
                 #rows = self.driver.find_element_by_css_selector('div.search-results').find_elements_by_css_selector('li.search-result')
-                _line = rows.find_elements_by_css_selector('li.search-result')[_i].find_element_by_css_selector('span.name.actor-name')
-                # if member's name is 'LinkedIn Member', it can't be scraped.
+                #_line = rows.find_elements_by_css_selector('li.search-result')[_i].find_element_by_css_selector('span.name.actor-name')
+                rows = rows.find_elements_by_css_selector('li.search-result')
+                #time.sleep(1)
+
+                if len(rows) is 10:
+                    #_line = rows[_i].find_element_by_css_selector('span.name.actor-name')
+                    _line = WebDriverWait(rows[_i], 200).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "span.name.actor-name")))
+                else:
+                    _line = WebDriverWait(rows[_i+1], 200).until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, "span.name.actor-name")))
+# if member's name is 'LinkedIn Member', it can't be scraped.
                 if 'LinkedIn Member' not in _line.text.strip():
                     _line.click()
                 else:
@@ -258,8 +267,40 @@ class mainScraper():
         print('OK')
 
     def saveCSV(self):
-        
+        output = open(self.search_word + '.csv', 'w', encoding='utf-8', newline='')
+        writer = csv.writer(output)
+        header = [
+            'Full Name', 'Current Title', 'Location', 'Description of Company',
+            'Job Title#1', 'Company Name#1', 'Period#1', 'Geolocation#1',
+            'Job Title#2', 'Company Name#2', 'Period#2', 'Geolocation#2',
+            'Job Title#3', 'Company Name#3', 'Period#3', 'Geolocation#3',
+            'Job Title#4', 'Company Name#4', 'Period#4', 'Geolocation#4',
+            'Job Title#5', 'Company Name#5', 'Period#5', 'Geolocation#5',
+            'Job Title#6', 'Company Name#6', 'Period#6', 'Geolocation#6',
+            'Job Title#7', 'Company Name#7', 'Period#7', 'Geolocation#7',
+            'Job Title#8', 'Company Name#8', 'Period#8', 'Geolocation#8',
+            'Job Title#9', 'Company Name#9', 'Period#9', 'Geolocation#9',
+            'Job Title#10', 'Company Name#10', 'Period#10', 'Geolocation#10',
+            'Educational Institution#1', 'Degree obtained#1', 'Date degree#1 was received',
+            'Educational Institution#2', 'Degree obtained#2', 'Date degree#2 was received',
+            'Educational Institution#3', 'Degree obtained#3', 'Date degree#3 was received',
+            'Educational Institution#4', 'Degree obtained#4', 'Date degree#4 was received',
+            'Educational Institution#5', 'Degree obtained#5', 'Date degree#5 was received',
+        ]
+        writer.writerow(header)
+
+        for i, row in enumerate(self.output_data):
+            line = row[:4]
+            for i, elm in enumerate(row[4]):
+                line.extend(elm)
+            for i, elm in enumerate(row[5]):
+                line.extend(elm)
+            writer.writerow(line)
+
+        output.close()
+        self.output_data.clear()
 
 if __name__ == '__main__':
     app = mainScraper('Duo Security')
     app.startScraping()
+    app.saveCSV()
