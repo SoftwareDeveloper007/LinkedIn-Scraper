@@ -85,7 +85,7 @@ class mainScraper():
         #self.driver.find_element_by_css_selector('li.search-facet.search-facet--current-company > button > span > span > h3').click()
 
         current_company = WebDriverWait(self.driver, 200).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "li.search-facet.search-facet--current-company > button"))
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "li.search-facet.search-facet--current-company > button"))
         )
         current_company.click()
 
@@ -96,25 +96,41 @@ class mainScraper():
         page_index = 0
         while 1:
             if 'No results found.' not in self.driver.find_element_by_tag_name('html').text.strip():
-                page_index += 1
+                page_index += 1     # If 'No results found' is not in the page text, increase the page number
             else:
+                # If 'No results found' is in the page text, break from while loop
                 break
 
+            # If page number is greater than 1, create next page url
             if page_index > 1:
                 self.driver.get(self.base_url + '&page={}'.format(page_index))
 
-            rows = WebDriverWait(self.driver, 200).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "li.search-result")))
+            '''
+            total_result = WebDriverWait(self.driver, 200).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "div.search-results")))
 
-            for i, row in enumerate(rows):
-                line = row.find_element_by_css_selector('span.name.actor-name')
-                if 'LinkedIn Member' not in line.text.strip():
-                    line.click()
+            rows = WebDriverWait(total_result, 200).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "li.search-result")))
+            '''
+
+            time.sleep(5)
+
+
+            #for row in rows:
+            for _i in range(10):
+                # Rows in the first page
+                rows = WebDriverWait(self.driver, 200).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.search-results")))
+                #rows = self.driver.find_element_by_css_selector('div.search-results').find_elements_by_css_selector('li.search-result')
+                _line = rows.find_elements_by_css_selector('li.search-result')[_i].find_element_by_css_selector('span.name.actor-name')
+                # if member's name is 'LinkedIn Member', it can't be scraped.
+                if 'LinkedIn Member' not in _line.text.strip():
+                    _line.click()
                 else:
                     continue
 
                 try:
                     headline_row = WebDriverWait(self.driver, 200).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.pv-top-card-section__body")))
                     try:
+                        # If more button is in headline, click it.
                         headline_row.find_element_by_css_selector('button.pv-top-card-section__summary-toggle-button').click()
                     except:
                         pass
@@ -147,7 +163,10 @@ class mainScraper():
                 for i in range(10):
                     experience.append(['', '', '', ''])
                 try:
-                    experience_row = self.driver.find_element_by_css_selector('section.pv-profile-section.experience-section.ember-view')
+                    #experience_row = self.driver.find_element_by_css_selector('section.pv-profile-section.experience-section')
+                    experience_row = WebDriverWait(self.driver, 200).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "section.pv-profile-section.experience-section"))
+                    )
                     try:
                         experience_row.find_element_by_css_selector('button.pv-profile-section__see-more-inline').click()
                     except:
@@ -158,28 +177,28 @@ class mainScraper():
                     )
 
 
-                    for i, elm in enumerate(sub_experiences):
+                    for j, elm in enumerate(sub_experiences):
                         try:
                             job_title = elm.find_element_by_tag_name('h3').text.strip()
                         except:
                             job_title = ''
 
                         try:
-                            company_name = elm.find_elements_by_tag_name('h4')[0].text.strip()
+                            company_name = elm.find_elements_by_tag_name('h4')[0].text.strip().split('\n')[1]
                         except:
                             company_name = ''
 
                         try:
-                            period = elm.find_elements_by_tag_name('h4')[1].text.strip() + ': ', elm.find_elements_by_tag_name('h4')[2].text.strip()
+                            period = elm.find_elements_by_tag_name('h4')[1].text.strip().split('\n')[1] + ': ' + elm.find_elements_by_tag_name('h4')[2].text.strip().split('\n')[1]
                         except:
                             period = ''
 
                         try:
-                            geolocation = elm.find_elements_by_tag_name('h4')[3].text.strip()
+                            geolocation = elm.find_elements_by_tag_name('h4')[3].text.strip().split('\n')[1]
                         except:
                             geolocation = ''
 
-                        experience[i] = [job_title, company_name, period, geolocation]
+                        experience[j] = [job_title, company_name, period, geolocation]
 
                 except:
                     pass
@@ -189,8 +208,12 @@ class mainScraper():
                     education.append(['', '', ''])
 
                 try:
-                    education_row = self.driver.find_element_by_css_selector(
-                        'section.pv-profile-section.education-section.ember-view')
+                    #education_row = self.driver.find_element_by_css_selector('section.pv-profile-section.education-section')
+                    education_row = WebDriverWait(self.driver, 200).until(
+                        EC.presence_of_element_located(
+                            (By.CSS_SELECTOR, "section.pv-profile-section.education-section"))
+                    )
+
                     try:
                         education_row.find_element_by_css_selector(
                             'button.pv-profile-section__see-more-inline').click()
@@ -200,7 +223,7 @@ class mainScraper():
                     sub_educations = education_row.find_elements_by_css_selector(
                         'ul.pv-profile-section__section-info > li')
 
-                    for i, elm in enumerate(sub_educations):
+                    for j, elm in enumerate(sub_educations):
                         try:
                             edu_institution = elm.find_element_by_css_selector('div.pv-entity__degree-info > h3').text.strip()
                         except:
@@ -208,24 +231,34 @@ class mainScraper():
 
                         try:
                             degree = elm.find_element_by_css_selector('div.pv-entity__degree-info').text.strip().replace(edu_institution, '').strip()
+                            degree = ', '.join(degree.split('\n')[1:])
                         except:
                             degree = ''
 
                         try:
-                            date = elm.find_element_by_css_selector('p.pv-entity__dates').text.strip()
+                            date = elm.find_element_by_css_selector('p.pv-entity__dates').text.strip().split('\n')[1]
                         except:
                             date = ''
 
-                        education[i] = [edu_institution, degree, date]
+                        education[j] = [edu_institution, degree, date]
 
 
                 except:
                     pass
-                print('OK')
 
+                self.output_data.append([
+                    full_name, current_title, location, company_desc,
+                    experience, education
+                ])
+
+                #print('OK')
+                self.driver.execute_script("window.history.go(-1)")
 
 
         print('OK')
+
+    def saveCSV(self):
+        
 
 if __name__ == '__main__':
     app = mainScraper('Duo Security')
