@@ -12,6 +12,7 @@ def takeFirst(elem):
 
 #email = 'qingxin_age@hotmail.com'
 email = 'shimauma4739@linuxmail.org'
+#email = 'Jiahao_Huo@mail.com'
 password = 'passion1989'
 
 class mainScraper():
@@ -132,6 +133,8 @@ class mainScraper():
         self.base_url = self.driver.current_url
 
         page_index = 0
+
+
         while 1:
             if 'No results found.' not in self.driver.find_element_by_tag_name('html').text.strip():
                 page_index += 1     # If 'No results found' is not in the page text, increase the page number
@@ -153,56 +156,83 @@ class mainScraper():
             logTxt = '#################### Page {} #########################################'.format(page_index)
             print(logTxt)
 
+            scroll_step = 5
             #for row in rows:
             for _i in range(10):
                 logTxt = '\t~~~~~~~~~~~~~~~~~~ Row {}, Page {} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'.format(_i, page_index)
                 print(logTxt)
-                if _i >= 4:
+
+                if _i >= scroll_step:
                     self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                     time.sleep(1)
                 try:
                     # Rows in the first page
                     rows = WebDriverWait(self.driver, 50).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.search-results")))
-                    #rows = WebDriverWait(self.driver, 50).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.search-results > li.search-result")))
-                    #rows = self.driver.find_element_by_css_selector('div.search-results').find_elements_by_css_selector('li.search-result')
-                    #_line = rows.find_elements_by_css_selector('li.search-result')[_i].find_element_by_css_selector('span.name.actor-name')
                     rows = rows.find_elements_by_css_selector('li.search-result')
-                    #time.sleep(1)
                 except:
                     logTxt = "\tCan't find rows"
                     print(logTxt)
                     continue
 
                 if len(rows) is 10:
+                    if len(rows) == _i:
+                        return
                     #_line = rows[_i].find_element_by_css_selector('span.name.actor-name')
                     _line = WebDriverWait(rows[_i], 50).until(
                         #EC.element_to_be_clickable((By.CSS_SELECTOR, "span.actor-name")))
                         EC.element_to_be_clickable((By.CSS_SELECTOR, "a")))
+                    scroll_step = 5
+
+                    if 'LinkedIn Member' not in rows[_i].text:
+                        print(_line.text)
+
+                        def click_line(num_tries=5):
+                            try:
+                                _line.click()
+                                flag = True
+                            except:
+                                flag = False
+                                if num_tries > 0:
+                                    self.driver.refresh()
+                                    flag = click_line(num_tries - 1)
+                            return flag
+
+                        if click_line() is False:
+                            logTxt = "\tCan't click row"
+                            print(logTxt)
+                            self.driver.refresh()
+                            continue
+                    else:
+                        continue
                 else:
+                    if len(rows) == _i+1:
+                        return
                     _line = WebDriverWait(rows[_i+1], 50).until(
                         #EC.element_to_be_clickable((By.CSS_SELECTOR, "span.actor-name")))
                         EC.element_to_be_clickable((By.CSS_SELECTOR, "a")))
-# if member's name is 'LinkedIn Member', it can't be scraped.
-                if 'LinkedIn Member' not in _line.text.strip():
+                    scroll_step = 4
 
-                    def click_line(num_tries=5):
-                        try:
-                            _line.click()
-                            flag = True
-                        except:
-                            flag = False
-                            if num_tries > 0:
-                                self.driver.refresh()
-                                flag = click_line(num_tries-1)
-                        return flag
+                    if 'LinkedIn Member' not in rows[_i+1].text:
+                        print(_line.text)
 
-                    if click_line() is False:
-                        logTxt = "\tCan't click row"
-                        print(logTxt)
-                        self.driver.refresh()
+                        def click_line(num_tries=5):
+                            try:
+                                _line.click()
+                                flag = True
+                            except:
+                                flag = False
+                                if num_tries > 0:
+                                    self.driver.refresh()
+                                    flag = click_line(num_tries - 1)
+                            return flag
+
+                        if click_line() is False:
+                            logTxt = "\tCan't click row"
+                            print(logTxt)
+                            self.driver.refresh()
+                            continue
+                    else:
                         continue
-                else:
-                    continue
 
                 try:
                     headline_row = WebDriverWait(self.driver, 50).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.pv-top-card-section__body")))
@@ -243,14 +273,10 @@ class mainScraper():
                 for i in range(10):
                     experience.append(['', '', '', ''])
                 try:
-                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    time.sleep(1)
                     experience_row = self.driver.find_element_by_css_selector('section.pv-profile-section.experience-section')
-                    '''
-                    experience_row = WebDriverWait(self.driver, 50).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, "section.pv-profile-section.experience-section"))
-                    )
-                    '''
+                    #actions = ActionChains(self.driver)
+                    #actions.move_to_element(experience_row).perform()
+                    self.driver.execute_script("arguments[0].scrollIntoView();", experience_row)
                     try:
                         experience_row.find_element_by_css_selector('button.pv-profile-section__see-more-inline').click()
                     except:
@@ -300,15 +326,10 @@ class mainScraper():
                     education.append(['', '', ''])
 
                 try:
-                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    time.sleep(1)
                     education_row = self.driver.find_element_by_css_selector('section.pv-profile-section.education-section')
-                    '''
-                    education_row = WebDriverWait(self.driver, 50).until(
-                        EC.presence_of_element_located(
-                            (By.CSS_SELECTOR, "section.pv-profile-section.education-section"))
-                    )
-                    '''
+                    #actions = ActionChains(self.driver)
+                    #actions.move_to_element(education_row).perform()
+                    self.driver.execute_script("arguments[0].scrollIntoView();", education_row)
                     try:
                         education_row.find_element_by_css_selector(
                             'button.pv-profile-section__see-more-inline').click()
