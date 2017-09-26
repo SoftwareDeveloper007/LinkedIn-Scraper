@@ -29,71 +29,106 @@ class mainScraper():
         self.driver.switch_to.frame(self.driver.find_element_by_tag_name("iframe"))
 
         try:
-            signin = WebDriverWait(self.driver, 200).until(
+            '''
+            signin = WebDriverWait(self.driver, 50).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "p.signin-link > a"))
             )
+            '''
+            signin = self.driver.find_element_by_css_selector("p.signin-link > a")
             signin.click()
+            logTxt = 'Go to Login Screen'
+            print(logTxt)
         except:
             pass
 
-        id = WebDriverWait(self.driver, 200).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "input#session_key-login"))
-        )
-        pswd = WebDriverWait(self.driver, 200).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "input#session_password-login"))
-        )
+        try:
+            id = WebDriverWait(self.driver, 50).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "input#session_key-login"))
+            )
+            pswd = WebDriverWait(self.driver, 50).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "input#session_password-login"))
+            )
 
-        id.send_keys(email)
-        pswd.send_keys(password)
+            id.send_keys(email)
+            logTxt = 'Email inserted!'
+            print(logTxt)
+            pswd.send_keys(password)
+            logTxt = 'Password inserted!'
+            print(logTxt)
 
-        time.sleep(1)
-        btn = WebDriverWait(self.driver, 200).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "input#btn-primary"))
-        )
+            time.sleep(1)
+            btn = WebDriverWait(self.driver, 50).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "input#btn-primary"))
+            )
+            btn.click()
+            logTxt = 'Logged in Successfully!'
+            print(logTxt)
+            time.sleep(1)
+        except:
+            logTxt = 'Failed to login'
+            print(logTxt)
+            sys.exit(1)
 
-        btn.click()
+        try:
+            #print(self.driver.page_source)
+            search_in = WebDriverWait(self.driver, 50).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "div.type-ahead-input-container > div > div > input"))
+            )
 
-        time.sleep(1)
-        #print(self.driver.page_source)
-        search_in = WebDriverWait(self.driver, 200).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "div.type-ahead-input-container > div > div > input"))
-        )
+            search_in.click()
+            time.sleep(1)
 
-        search_in.click()
-        time.sleep(1)
+            self.driver.refresh()
 
-        self.driver.refresh()
+            search_in = WebDriverWait(self.driver, 50).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "div.type-ahead-input-container > div > div > input"))
+            )
 
-        search_in = WebDriverWait(self.driver, 200).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "div.type-ahead-input-container > div > div > input"))
-        )
+            action_chain = ActionChains(self.driver)
+            action_chain \
+                .click(search_in) \
+                .key_down(Keys.CONTROL) \
+                .send_keys('a') \
+                .key_up(Keys.CONTROL) \
+                .send_keys(Keys.DELETE) \
+                .send_keys(self.search_word) \
+                .send_keys(Keys.ENTER) \
+                .perform()
 
-        action_chain = ActionChains(self.driver)
-        action_chain \
-            .click(search_in) \
-            .key_down(Keys.CONTROL) \
-            .send_keys('a') \
-            .key_up(Keys.CONTROL) \
-            .send_keys(Keys.DELETE) \
-            .send_keys(self.search_word) \
-            .send_keys(Keys.ENTER) \
-            .perform()
+            logTxt = 'Search word {} inserted successfully!'.format(self.search_word)
+            print(logTxt)
+        except:
+            logTxt = 'Failed to insert search word!'
+            print(logTxt)
+            sys.exit(1)
 
-        people_tab = WebDriverWait(self.driver, 200).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.neptune-grid.two-column > ul"))
-        )
 
-        people_tab.find_elements_by_tag_name('li')[1].find_element_by_tag_name('button').click()
+        try:
+            people_tab = WebDriverWait(self.driver, 50).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "div.neptune-grid.two-column > ul"))
+            )
 
-        #self.driver.find_element_by_css_selector('li.search-facet.search-facet--current-company > button > span > span > h3').click()
+            people_tab.find_elements_by_tag_name('li')[1].find_element_by_tag_name('button').click()
 
-        current_company = WebDriverWait(self.driver, 200).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "li.search-facet.search-facet--current-company > button"))
-        )
-        current_company.click()
+            #self.driver.find_element_by_css_selector('li.search-facet.search-facet--current-company > button > span > span > h3').click()
+            time.sleep(2)
+            current_company = WebDriverWait(self.driver, 50).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "li.search-facet.search-facet--current-company > button"))
+            )
+            current_company.click()
+            time.sleep(1)
+            self.driver.find_element_by_css_selector('li.search-facet.search-facet--current-company').find_elements_by_css_selector('li.search-facet__value')[0].click()
 
-        self.driver.find_element_by_css_selector('li.search-facet.search-facet--current-company').find_elements_by_tag_name('li')[0].click()
+            logTxt = 'Clicked People and Current Company/First Item!'
+            print(logTxt)
+            time.sleep(5)
+            print("\n")
+        except:
+            logTxt = 'Failed to click People and Current Company!'
+            print(logTxt)
 
+
+        #self.driver.find_element_by_css_selector('li.search-facet.search-facet--current-company').find_elements_by_tag_name('li')[0].click()
         self.base_url = self.driver.current_url
 
         page_index = 0
@@ -109,44 +144,73 @@ class mainScraper():
                 self.driver.get(self.base_url + '&page={}'.format(page_index))
 
             '''
-            total_result = WebDriverWait(self.driver, 200).until(
+            total_result = WebDriverWait(self.driver, 50).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, "div.search-results")))
 
-            rows = WebDriverWait(total_result, 200).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "li.search-result")))
+            rows = WebDriverWait(total_result, 50).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "li.search-result")))
             '''
 
-            time.sleep(5)
-
+            logTxt = '#################### Page {} #########################################'.format(page_index)
+            print(logTxt)
 
             #for row in rows:
             for _i in range(10):
-                # Rows in the first page
-                rows = WebDriverWait(self.driver, 200).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.search-results")))
-                #rows = self.driver.find_element_by_css_selector('div.search-results').find_elements_by_css_selector('li.search-result')
-                #_line = rows.find_elements_by_css_selector('li.search-result')[_i].find_element_by_css_selector('span.name.actor-name')
-                rows = rows.find_elements_by_css_selector('li.search-result')
-                #time.sleep(1)
+                logTxt = '\t~~~~~~~~~~~~~~~~~~ Row {}, Page {} ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'.format(_i, page_index)
+                print(logTxt)
+                if _i >= 4:
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(1)
+                try:
+                    # Rows in the first page
+                    rows = WebDriverWait(self.driver, 50).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.search-results")))
+                    #rows = WebDriverWait(self.driver, 50).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.search-results > li.search-result")))
+                    #rows = self.driver.find_element_by_css_selector('div.search-results').find_elements_by_css_selector('li.search-result')
+                    #_line = rows.find_elements_by_css_selector('li.search-result')[_i].find_element_by_css_selector('span.name.actor-name')
+                    rows = rows.find_elements_by_css_selector('li.search-result')
+                    #time.sleep(1)
+                except:
+                    logTxt = "\tCan't find rows"
+                    print(logTxt)
+                    continue
 
                 if len(rows) is 10:
                     #_line = rows[_i].find_element_by_css_selector('span.name.actor-name')
-                    _line = WebDriverWait(rows[_i], 200).until(EC.presence_of_element_located((By.CSS_SELECTOR, "span.actor-name")))
+                    _line = WebDriverWait(rows[_i], 50).until(
+                        #EC.element_to_be_clickable((By.CSS_SELECTOR, "span.actor-name")))
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, "a")))
                 else:
-                    _line = WebDriverWait(rows[_i+1], 200).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, "span.actor-name")))
+                    _line = WebDriverWait(rows[_i+1], 50).until(
+                        #EC.element_to_be_clickable((By.CSS_SELECTOR, "span.actor-name")))
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, "a")))
 # if member's name is 'LinkedIn Member', it can't be scraped.
                 if 'LinkedIn Member' not in _line.text.strip():
-                    _line.click()
+
+                    def click_line(num_tries=5):
+                        try:
+                            _line.click()
+                            flag = True
+                        except:
+                            flag = False
+                            if num_tries > 0:
+                                self.driver.refresh()
+                                flag = click_line(num_tries-1)
+                        return flag
+
+                    if click_line() is False:
+                        logTxt = "\tCan't click row"
+                        print(logTxt)
+                        self.driver.refresh()
+                        continue
                 else:
                     continue
 
                 try:
-                    headline_row = WebDriverWait(self.driver, 200).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.pv-top-card-section__body")))
+                    headline_row = WebDriverWait(self.driver, 50).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.pv-top-card-section__body")))
                     try:
                         # If more button is in headline, click it.
                         headline_row.find_element_by_css_selector('button.pv-top-card-section__summary-toggle-button').click()
                     except:
                         pass
-
                     try:
                         full_name = headline_row.find_element_by_class_name('pv-top-card-section__name').text.strip()
                     except:
@@ -171,46 +235,62 @@ class mainScraper():
                     location = ''
                     company_desc = ''
 
+                logTxt = "\tFull Name: \t\t\t{}\n\tCurrent Title: \t\t{}\n\tLocation: \t\t\t{}\n\tDescription: \t\t{}\n" \
+                    .format(full_name, full_name, current_title, location, company_desc)
+                print(logTxt)
+
                 experience = []
                 for i in range(10):
                     experience.append(['', '', '', ''])
                 try:
-                    #experience_row = self.driver.find_element_by_css_selector('section.pv-profile-section.experience-section')
-                    experience_row = WebDriverWait(self.driver, 200).until(
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(1)
+                    experience_row = self.driver.find_element_by_css_selector('section.pv-profile-section.experience-section')
+                    '''
+                    experience_row = WebDriverWait(self.driver, 50).until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, "section.pv-profile-section.experience-section"))
                     )
+                    '''
                     try:
                         experience_row.find_element_by_css_selector('button.pv-profile-section__see-more-inline').click()
                     except:
                         pass
 
-                    sub_experiences = WebDriverWait(experience_row, 200).until(
-                        EC.presence_of_all_elements_located((By.CSS_SELECTOR, "ul.pv-profile-section__section-info > li"))
-                    )
+                    try:
+                        sub_experiences = WebDriverWait(experience_row, 50).until(
+                            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "ul.pv-profile-section__section-info > li"))
+                        )
 
+                        for j, elm in enumerate(sub_experiences):
+                            try:
+                                job_title = elm.find_element_by_tag_name('h3').text.strip()
+                            except:
+                                job_title = ''
 
-                    for j, elm in enumerate(sub_experiences):
-                        try:
-                            job_title = elm.find_element_by_tag_name('h3').text.strip()
-                        except:
-                            job_title = ''
+                            try:
+                                company_name = elm.find_elements_by_tag_name('h4')[0].text.strip().split('\n')[1]
+                            except:
+                                company_name = ''
 
-                        try:
-                            company_name = elm.find_elements_by_tag_name('h4')[0].text.strip().split('\n')[1]
-                        except:
-                            company_name = ''
+                            try:
+                                period = elm.find_elements_by_tag_name('h4')[1].text.strip().split('\n')[1] + ': ' + \
+                                         elm.find_elements_by_tag_name('h4')[2].text.strip().split('\n')[1]
+                            except:
+                                period = ''
 
-                        try:
-                            period = elm.find_elements_by_tag_name('h4')[1].text.strip().split('\n')[1] + ': ' + elm.find_elements_by_tag_name('h4')[2].text.strip().split('\n')[1]
-                        except:
-                            period = ''
+                            try:
+                                geolocation = elm.find_elements_by_tag_name('h4')[3].text.strip().split('\n')[1]
+                            except:
+                                geolocation = ''
 
-                        try:
-                            geolocation = elm.find_elements_by_tag_name('h4')[3].text.strip().split('\n')[1]
-                        except:
-                            geolocation = ''
+                            experience[j] = [job_title, company_name, period, geolocation]
 
-                        experience[j] = [job_title, company_name, period, geolocation]
+                            logTxt = '\tJob Title#{}: \t\t{}\n\tCompany Name#{}: \t{}\n\tPeriod#{}: \t\t\t{}\n\tGeolocation#{}: \t\t{}\n'\
+                                .format(j, job_title, j, company_name, j, period, j, geolocation)
+                            print(logTxt)
+                    except:
+                        logTxt = "\tCan't find detailed experience"
+                        print(logTxt)
 
                 except:
                     pass
@@ -220,40 +300,50 @@ class mainScraper():
                     education.append(['', '', ''])
 
                 try:
-                    #education_row = self.driver.find_element_by_css_selector('section.pv-profile-section.education-section')
-                    education_row = WebDriverWait(self.driver, 200).until(
+                    self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(1)
+                    education_row = self.driver.find_element_by_css_selector('section.pv-profile-section.education-section')
+                    '''
+                    education_row = WebDriverWait(self.driver, 50).until(
                         EC.presence_of_element_located(
                             (By.CSS_SELECTOR, "section.pv-profile-section.education-section"))
                     )
-
+                    '''
                     try:
                         education_row.find_element_by_css_selector(
                             'button.pv-profile-section__see-more-inline').click()
                     except:
                         pass
 
-                    sub_educations = education_row.find_elements_by_css_selector(
-                        'ul.pv-profile-section__section-info > li')
+                    try:
+                        sub_educations = education_row.find_elements_by_css_selector(
+                            'ul.pv-profile-section__section-info > li')
 
-                    for j, elm in enumerate(sub_educations):
-                        try:
-                            edu_institution = elm.find_element_by_css_selector('div.pv-entity__degree-info > h3').text.strip()
-                        except:
-                            edu_institution = ''
+                        for j, elm in enumerate(sub_educations):
+                            try:
+                                edu_institution = elm.find_element_by_css_selector('div.pv-entity__degree-info > h3').text.strip()
+                            except:
+                                edu_institution = ''
 
-                        try:
-                            degree = elm.find_element_by_css_selector('div.pv-entity__degree-info').text.strip().replace(edu_institution, '').strip()
-                            degree = ', '.join(degree.split('\n')[1:])
-                        except:
-                            degree = ''
+                            try:
+                                degree = elm.find_element_by_css_selector('div.pv-entity__degree-info').text.strip().replace(edu_institution, '').strip()
+                                degree = ', '.join(degree.split('\n')[1:])
+                            except:
+                                degree = ''
 
-                        try:
-                            date = elm.find_element_by_css_selector('p.pv-entity__dates').text.strip().split('\n')[1]
-                        except:
-                            date = ''
+                            try:
+                                date = elm.find_element_by_css_selector('p.pv-entity__dates').text.strip().split('\n')[1]
+                            except:
+                                date = ''
 
-                        education[j] = [edu_institution, degree, date]
+                            education[j] = [edu_institution, degree, date]
 
+                            logTxt = '\tEducational Institution#{}: \t{}\n\tDegree#{}: \t\t\t\t{}\n\tDate#{}: \t\t\t\t{}\n' \
+                                .format(j, edu_institution, j, degree, j, date)
+                            print(logTxt)
+                    except:
+                        logTxt = "\tCan't find detailed education"
+                        print(logTxt)
 
                 except:
                     pass
@@ -263,13 +353,16 @@ class mainScraper():
                     experience, education
                 ])
 
+
+
+
                 #print('OK')
                 #self.driver.execute_script("window.history.go(-1)")
                 time.sleep(1)
                 self.driver.back()
                 time.sleep(1)
 
-
+        self.driver.quit()
         print('OK')
 
     def saveCSV(self):
