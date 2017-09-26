@@ -11,7 +11,7 @@ def takeFirst(elem):
     return elem[0]
 
 #email = 'qingxin_age@hotmail.com'
-email = 'david.jin11111@mail.com'
+email = 'shimauma4739@linuxmail.org'
 password = 'passion1989'
 
 class mainScraper():
@@ -28,12 +28,14 @@ class mainScraper():
         self.driver.get('https://www.linkedin.com/m/login/')
         self.driver.switch_to.frame(self.driver.find_element_by_tag_name("iframe"))
 
-        '''
-        signin = WebDriverWait(self.driver, 200).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "p.signin-link > a"))
-        )
-        signin.click()
-        '''
+        try:
+            signin = WebDriverWait(self.driver, 200).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "p.signin-link > a"))
+            )
+            signin.click()
+        except:
+            pass
+
         id = WebDriverWait(self.driver, 200).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "input#session_key-login"))
         )
@@ -127,10 +129,10 @@ class mainScraper():
 
                 if len(rows) is 10:
                     #_line = rows[_i].find_element_by_css_selector('span.name.actor-name')
-                    _line = WebDriverWait(rows[_i], 200).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "span.name.actor-name")))
+                    _line = WebDriverWait(rows[_i], 200).until(EC.presence_of_element_located((By.CSS_SELECTOR, "span.actor-name")))
                 else:
                     _line = WebDriverWait(rows[_i+1], 200).until(
-                        EC.element_to_be_clickable((By.CSS_SELECTOR, "span.name.actor-name")))
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "span.actor-name")))
 # if member's name is 'LinkedIn Member', it can't be scraped.
                 if 'LinkedIn Member' not in _line.text.strip():
                     _line.click()
@@ -262,7 +264,10 @@ class mainScraper():
                 ])
 
                 #print('OK')
-                self.driver.execute_script("window.history.go(-1)")
+                #self.driver.execute_script("window.history.go(-1)")
+                time.sleep(1)
+                self.driver.back()
+                time.sleep(1)
 
 
         print('OK')
